@@ -4,6 +4,12 @@ from .constants import BLACK, ROWS, RED, SQUARE_SIZE, COLS, WHITE, LINE_THICKNES
 class Board:
     def __init__(self):
         self.board = []
+        self.b_potential = []
+        self.w_potential = []
+        self.b_defensible = []
+        self.w_defensible = []
+        self.blackAttack = [None] * 6
+        self.whiteAttack = [None] * 6
         self.create_board()
     
     def draw(self, win):
@@ -35,7 +41,16 @@ class Board:
     def create_board(self):
         for row in range(ROWS):
             self.board.append([])
+            self.b_potential.append([])
+            self.w_potential.append([])
+            self.b_defensible.append([])
+            self.w_defensible.append([])
             for col in range(COLS):
                 self.board[row].append(0)
+                self.b_potential[row].append(None)
+                self.w_potential[row].append(None)
+                self.b_defensible[row].append(None)
+                self.w_defensible[row].append(None)
         middle = ROWS // 2
         self.board[middle][middle] = 1
+        
