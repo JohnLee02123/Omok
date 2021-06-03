@@ -47,10 +47,19 @@ class Board:
             self.w_defensible.append([])
             for col in range(COLS):
                 self.board[row].append(0)
-                self.b_potential[row].append(None)
-                self.w_potential[row].append(None)
-                self.b_defensible[row].append(None)
-                self.w_defensible[row].append(None)
+                self.b_potential[row].append(['o1', 'o1', 'o1', 'o1'])
+                self.w_potential[row].append(['o1', 'o1', 'o1', 'o1'])
+                self.b_defensible[row].append(['o1', 'o1', 'o1', 'o1'])
+                self.w_defensible[row].append(['o1', 'o1', 'o1', 'o1'])
+        for row in range(ROWS):
+            self.b_potential[row][0] = 'c1'
+            self.b_potential[row][COLS - 1] = 'c1'
+            self.w_potential[row][0] = 'c1'
+            self.w_potential[row][COLS - 1] = 'c1'
+        for col in range(COLS):
+            self.b_potential[0][col] = 'c1'
+            self.b_potential[ROWS - 1][col] = 'c1'
+            self.w_potential[0][col] = 'c1'
+            self.w_potential[ROWS - 1][col] = 'c1'
         middle = ROWS // 2
-        self.board[middle][middle] = 1
-        
+        self.board[middle][middle] = 1        
