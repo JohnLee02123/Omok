@@ -1,6 +1,5 @@
 import pygame
-from pygame.constants import BUTTON_WHEELDOWN
-from .constants import BUTTON_INT_PADDING, BUTTON_PADDING, CONSOLE_HEIGHT, CONSOLE_LEFT_PADDING, CONSOLE_LENGTH, CONSOLE_TEXT_FONT, DRAW_B_POT, DRAW_N_POT, DRAW_W_POT, GREY_1, GREY_3, GREY_5, PANEL_FONT_SIZE, PANEL_LEFT_PADDING, PANEL_TOP_PADDING, BOARD_LENGTH, BOARD_SIDE_PADDING, BOARD_TOP_PADDING, POTENTIAL_B_HEIGHT, POTENTIAL_B_WIDTH, RESET_B_HEIGHT, RESET_B_WIDTH, RESET_EVENT, WHITE, BLACK, PANEL_LENGTH, PANEL_HEIGHT, SQUARE_SIZE, PANEL_INT_PADD, PANEL_FONT
+from .constants import BUTTON_INT_PADDING, BUTTON_PADDING, CONSOLE_HEIGHT, CONSOLE_LEFT_PADDING, CONSOLE_LENGTH, CONSOLE_TEXT_FONT, DEFAULT_FONT, DRAW_B_POT, DRAW_N_POT, DRAW_W_POT, GREY_1, GREY_3, GREY_5, PANEL_FONT_SIZE, PANEL_LEFT_PADDING, PANEL_TOP_PADDING, BOARD_LENGTH, BOARD_SIDE_PADDING, BOARD_TOP_PADDING, POTENTIAL_B_HEIGHT, POTENTIAL_B_WIDTH, RESET_B_HEIGHT, RESET_B_WIDTH, RESET_EVENT, SETTINGS_EVENT, WHITE, BLACK, PANEL_LENGTH, PANEL_HEIGHT, SQUARE_SIZE, PANEL_INT_PADD, PANEL_FONT
 
 class Panel:
     def __init__(self):
@@ -27,22 +26,25 @@ class Console:
         self.left_text_pos = []
         self.left_buttons = []
 
-        self.reset_button = Reset_Button(self.x + CONSOLE_LENGTH - BUTTON_PADDING - RESET_B_WIDTH, self.y + BUTTON_PADDING, RESET_B_WIDTH, RESET_B_HEIGHT, GREY_3, GREY_5, "Reset", "comicsans", BLACK)
+        self.initialize_buttons()
+
+        self.calculate_button_positions()
+    
+    def initialize_buttons(self):
+        self.reset_button = Reset_Button(self.x + CONSOLE_LENGTH - BUTTON_PADDING - RESET_B_WIDTH, self.y + BUTTON_PADDING, RESET_B_WIDTH, RESET_B_HEIGHT, GREY_3, GREY_5, "Reset", DEFAULT_FONT, BLACK)
         self.etc_buttons.append(self.reset_button)
 
         self.left_text.append(CONSOLE_TEXT_FONT.render("Potential Display Options", 1, BLACK))
         
-        self.pot_n_button = Potential_Button(0, 0, POTENTIAL_B_WIDTH, POTENTIAL_B_HEIGHT, GREY_3, GREY_5, "None", "comicsans", BLACK, DRAW_N_POT)
-        self.pot_b_button = Potential_Button(0, 0, POTENTIAL_B_WIDTH, POTENTIAL_B_HEIGHT, GREY_3, GREY_5, "Black", "comicsans", BLACK, DRAW_B_POT)
-        self.pot_w_button = Potential_Button(0, 0, POTENTIAL_B_WIDTH, POTENTIAL_B_HEIGHT, GREY_3, GREY_5, "White", "comicsans", BLACK, DRAW_W_POT)
+        self.pot_n_button = Potential_Button(0, 0, POTENTIAL_B_WIDTH, POTENTIAL_B_HEIGHT, GREY_3, GREY_5, "None", DEFAULT_FONT, BLACK, DRAW_N_POT)
+        self.pot_b_button = Potential_Button(0, 0, POTENTIAL_B_WIDTH, POTENTIAL_B_HEIGHT, GREY_3, GREY_5, "Black", DEFAULT_FONT, BLACK, DRAW_B_POT)
+        self.pot_w_button = Potential_Button(0, 0, POTENTIAL_B_WIDTH, POTENTIAL_B_HEIGHT, GREY_3, GREY_5, "White", DEFAULT_FONT, BLACK, DRAW_W_POT)
         self.pot_n_button.pressed = True
         self.pot_n_button.partners = [self.pot_b_button, self.pot_w_button]
         self.pot_b_button.partners = [self.pot_n_button, self.pot_w_button]
         self.pot_w_button.partners = [self.pot_n_button, self.pot_b_button]
         self.left_buttons.append([self.pot_n_button, self.pot_b_button, self.pot_w_button])
 
-        self.calculate_button_positions()
-    
     def calculate_button_positions(self):
         current_y = self.y + BUTTON_PADDING
         for a in range(len(self.left_text)):
@@ -141,3 +143,7 @@ class Potential_Button(Button):
     
     def ind_press(self):
         super().press()
+
+class Settings_Button(Button):
+    def press(self):
+        pygame.event.post(pygame.event.Event(SETTINGS_EVENT))

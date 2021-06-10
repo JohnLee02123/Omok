@@ -1,9 +1,11 @@
+from omokFiles.timer import Timer
 import pygame
 import os
 import json
-from .constants import CONSOLE_HEIGHT, CONSOLE_LENGTH, DRAW_B_POT, DRAW_N_POT, DRAW_W_POT, RED, SQUARE_SIZE, WHITE, BLUE, BLACK, WOOD_BACKGROUND, ROWS, COLS, DELTA, BLACK_POTENTIAL, DIRTOIND, WHITE_POTENTIAL, BOARD_START, BOARD_LENGTH
+from .constants import CONSOLE_HEIGHT, CONSOLE_LENGTH, DEFAULT_FONT, DRAW_B_POT, DRAW_N_POT, DRAW_W_POT, GREEN_1, GREEN_2, RED, SETTINGS_BUTTON_HEIGHT, SETTINGS_BUTTON_PADDING, SETTINGS_BUTTON_WIDTH, SQUARE_SIZE, WHITE, BLUE, BLACK, WIDTH, WOOD_BACKGROUND, ROWS, COLS, DELTA, BLACK_POTENTIAL, DIRTOIND, WHITE_POTENTIAL, BOARD_START, BOARD_LENGTH
 from .board import Board
-from .utilities import Console, Panel
+from .utilities import Console, Panel, Settings_Button
+from .settings import Settings
 
 class Game:
     def __init__(self, win):
@@ -15,6 +17,9 @@ class Game:
         self.board = Board()
         self.panel = Panel()
         self.console = Console()
+        self.settingsButton = Settings_Button(WIDTH - SETTINGS_BUTTON_WIDTH - SETTINGS_BUTTON_PADDING, SETTINGS_BUTTON_PADDING, SETTINGS_BUTTON_WIDTH, SETTINGS_BUTTON_HEIGHT, GREEN_1, GREEN_2, "Settings", DEFAULT_FONT, BLACK)
+        self.settings = Settings()
+        self.timer = Timer()
         self.turn = BLACK
         self.first = 0
         self.printlocal = True
@@ -29,7 +34,8 @@ class Game:
         self.board.draw(self.win)
         self.panel.draw(self.win, self.turn, self.num_move)
         self.console.draw(self.win)
-        #self.draw_valid_moves(self.valid_moves)
+        self.settingsButton.draw(self.win)
+        self.timer.draw(self.win)
         pygame.display.update()
     
     def change_turn(self):
@@ -51,6 +57,13 @@ class Game:
         if x > cx and x <= cx + CONSOLE_LENGTH and y > cy and y <= cy + CONSOLE_HEIGHT:
             return True
         return False
+    
+    def clicked_settings(self, pos):
+        x, y = pos
+        X, Y = self.settingsButton.x, self.settingsButton.y
+        if x > X and x <= X + self.settingsButton.width and y > Y and y <= Y + self.settingsButton.height:
+            return True
+        return False
 
     def select(self, pos):
         newPos = self.get_row_col_from_mouse(pos)
@@ -66,6 +79,18 @@ class Game:
                 self.board.draw_potential = 'w'
             elif console_ret == DRAW_N_POT:
                 self.board.draw_potential = 'n'
+        if self.clicked_settings(pos):
+            self.settingsButton.press()
+
+    def selectSettings(self, pos):
+        x, y = pos
+        X, Y = self.settings.x, self.settings.y
+        if x > X and x <= X + self.settings.width and y > Y and y <= self.settings.height:
+            order = self.settings.click(pos)
+
+    def updateSettings(self):
+        self.settings.draw(self.win)
+        pygame.display.update()
 
     def make_move(self, pos):
         x, y = pos
@@ -88,6 +113,7 @@ class Game:
         self.board.board[x][y] = i
         self.moveBookKeep(pos)
         self.change_turn()
+        self.timer.change_turn()
         self.num_move += 1
         return True
     
