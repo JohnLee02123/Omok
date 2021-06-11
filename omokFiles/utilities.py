@@ -1,5 +1,5 @@
 import pygame
-from .constants import BUTTON_INT_PADDING, BUTTON_PADDING, CONSOLE_HEIGHT, CONSOLE_LEFT_PADDING, CONSOLE_LENGTH, CONSOLE_TEXT_FONT, DEFAULT_FONT, DRAW_B_POT, DRAW_N_POT, DRAW_W_POT, GREY_1, GREY_3, GREY_5, PANEL_FONT_SIZE, PANEL_LEFT_PADDING, PANEL_TOP_PADDING, BOARD_LENGTH, BOARD_SIDE_PADDING, BOARD_TOP_PADDING, POTENTIAL_B_HEIGHT, POTENTIAL_B_WIDTH, RESET_B_HEIGHT, RESET_B_WIDTH, RESET_EVENT, SETTINGS_EVENT, WHITE, BLACK, PANEL_LENGTH, PANEL_HEIGHT, SQUARE_SIZE, PANEL_INT_PADD, PANEL_FONT
+from .constants import BUTTON_INT_PADDING, BUTTON_PADDING, CONSOLE_HEIGHT, CONSOLE_LEFT_PADDING, CONSOLE_LENGTH, CONSOLE_TEXT_FONT, DEFAULT_FONT, DRAW_B_POT, DRAW_N_POT, DRAW_W_POT, GREY_1, GREY_3, GREY_5, PANEL_FONT_SIZE, PANEL_LEFT_PADDING, PANEL_TOP_PADDING, BOARD_LENGTH, BOARD_SIDE_PADDING, BOARD_TOP_PADDING, POTENTIAL_B_HEIGHT, POTENTIAL_B_WIDTH, RESET_B_HEIGHT, RESET_B_WIDTH, RESET_EVENT, SETTINGS_EVENT, UNREDO_BUTTON_HEIGHT, UNREDO_BUTTON_WIDTH, WHITE, BLACK, PANEL_LENGTH, PANEL_HEIGHT, SQUARE_SIZE, PANEL_INT_PADD, PANEL_FONT
 
 class Panel:
     def __init__(self):
@@ -45,17 +45,25 @@ class Console:
         self.pot_w_button.partners = [self.pot_n_button, self.pot_b_button]
         self.left_buttons.append([self.pot_n_button, self.pot_b_button, self.pot_w_button])
 
+        self.left_text.append(CONSOLE_TEXT_FONT.render("Game Control", 1, BLACK))
+        self.undo_button = Undo_Button(0, 0, UNREDO_BUTTON_WIDTH, UNREDO_BUTTON_HEIGHT, GREY_3, GREY_5, "Undo", DEFAULT_FONT, BLACK)
+        self.redo_button = Redo_Button(0, 0, UNREDO_BUTTON_WIDTH, UNREDO_BUTTON_HEIGHT, GREY_3, GREY_5, "Redo", DEFAULT_FONT, BLACK)
+        self.left_buttons.append([self.undo_button, self.redo_button])
+
     def calculate_button_positions(self):
         current_y = self.y + BUTTON_PADDING
         for a in range(len(self.left_text)):
             current_x = self.x + BUTTON_PADDING
             self.left_text_pos.append((current_x, current_y))
             current_y += self.left_text[a].get_height() + BUTTON_INT_PADDING
+            maxheight = 0
             for b in range(len(self.left_buttons[a])):
                 self.left_buttons[a][b].x = current_x
                 self.left_buttons[a][b].y = current_y
                 self.left_buttons[a][b].calculate_text_pos()
                 current_x += self.left_buttons[a][b].width + BUTTON_INT_PADDING
+                maxheight = max(maxheight, self.left_buttons[a][b].height)
+            current_y += maxheight + BUTTON_INT_PADDING
 
     def draw(self, win):
         pygame.draw.rect(win, GREY_1, (self.x, self.y, CONSOLE_LENGTH, CONSOLE_HEIGHT))
@@ -74,8 +82,7 @@ class Console:
         for row in self.left_buttons:
             for button in row:
                 if button.is_clicked(pos):
-                    press = button.press()
-                    return press
+                    return button.press()
 
 class Button:
     def __init__(self, x, y, width, height, color, pressed_color, text, font, font_color):
@@ -147,3 +154,11 @@ class Potential_Button(Button):
 class Settings_Button(Button):
     def press(self):
         pygame.event.post(pygame.event.Event(SETTINGS_EVENT))
+
+class Undo_Button(Button):
+    def press(self):
+        return ("undo")
+
+class Redo_Button(Button):
+    def press(self):
+        return ("redo")
