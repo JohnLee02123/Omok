@@ -73,6 +73,8 @@ class Game:
                 self.board.draw_potential = 'n'
             elif console_ret == "undo":
                 self.board.undo()
+            elif console_ret == "redo":
+                self.board.redo()
         if self.clicked_settings(pos):
             self.board.undo()
             self.settingsButton.press()

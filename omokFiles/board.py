@@ -13,6 +13,7 @@ class Board:
         self.turn = BLACK
         self.num_move = 0
         self.history = deque()
+        self.redoHistory = deque()
         self.potential_init()
     
     def draw(self, win):
@@ -126,6 +127,8 @@ class Board:
                     pass
         self.board[x][y] = i
         self.history.append(pos)
+        if len(self.redoHistory) > 0:
+            self.redoHistory.clear()
         self.moveBookKeep(pos)
         for i in range(4):
             self.b_potential[pos[0]][pos[1]][i] = 'na'
@@ -136,11 +139,28 @@ class Board:
     def undo(self):
         if len(self.history) == 0:
             return
-        i, j = self.history.pop()
-        self.board[i][j] = 0
-        self.moveBookKeep((i, j))
+        pos = self.history.pop()
+        self.redoHistory.append(pos)
+        self.board[pos[0]][pos[1]] = 0
+        self.moveBookKeep(pos)
         self.change_turn()
         self.num_move -= 1
+    
+    def redo(self):
+        if len(self.redoHistory) == 0:
+            return
+        pos = self.redoHistory.pop()
+        self.history.append(pos)
+        if self.turn == BLACK:
+            self.board[pos[0]][pos[1]] = 1
+        else:
+            self.board[pos[0]][pos[1]] = -1
+        self.moveBookKeep(pos)
+        for i in range(4):
+            self.b_potential[pos[0]][pos[1]][i] = 'na'
+            self.w_potential[pos[0]][pos[1]][i] = 'na'
+        self.change_turn()
+        self.num_move += 1
 
     def moveBookKeep(self, pos):
         lanes = ['v', 'h', 'VH', 'vh']
