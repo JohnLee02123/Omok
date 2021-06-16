@@ -1,5 +1,6 @@
 import pygame
 import os
+import copy
 import json
 pygame.font.init()
 
@@ -68,6 +69,9 @@ SETTINGS_HEIGHT = HEIGHT - SETTINGS_PADDING * 2
 UNREDO_BUTTON_WIDTH = 80
 UNREDO_BUTTON_HEIGHT = 40
 
+SAVE_RESTART_BUTTON_WIDTH = 150
+SAVE_RESTART_BUTTON_HEIGHT = 40
+
 #Timer
 TIMER_PADDING = BOARD_TOP_PADDING // 7
 TIMER_WIDTH = BOARD_LENGTH // 3
@@ -77,9 +81,11 @@ TIMER_Y = TIMER_PADDING
 TIMER_BORDER_COLOR = BLACK
 TIMER_BORDER_THICKNESS = TIMER_HEIGHT // 10
 TIMER_COLOR = GREY
-BLACK_TIME_INIT = 30
-WHITE_TIME_INIT = 30
 
+with open(os.path.join('omokFiles', 'settings.json')) as json_file:
+    SETTINGS = json.load(json_file)
+
+NEW_SETTINGS = copy.deepcopy(SETTINGS)
 
 DRAW_B_POT, DRAW_W_POT, DRAW_N_POT = 'dbp', 'dwp', 'dnp'
 

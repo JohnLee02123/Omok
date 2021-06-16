@@ -78,13 +78,13 @@ class Game:
                 self.board.redo()
                 self.timer.change_turn()
         if self.clicked_settings(pos):
-            self.board.undo()
-            self.settingsButton.press()
+            settings_ret = self.settingsButton.press()
+
 
     def selectSettings(self, pos):
         x, y = pos
         X, Y = self.settings.x, self.settings.y
-        if x > X and x <= X + self.settings.width and y > Y and y <= self.settings.height:
+        if x > X and x <= X + self.settings.width and y > Y and y <= Y + self.settings.height:
             order = self.settings.click(pos)
 
     def updateSettings(self):

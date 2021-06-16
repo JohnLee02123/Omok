@@ -1,7 +1,7 @@
 import pygame
 import time
 from .utilities import Button
-from .constants import BLACK, BLACK_TIME_INIT, DEFAULT_FONT, TIMER_BORDER_COLOR, TIMER_BORDER_THICKNESS, TIMER_COLOR, TIMER_HEIGHT, TIMER_WIDTH, TIMER_X, TIMER_X, TIMER_Y, WHITE, WHITE_TIME_INIT
+from .constants import BLACK, DEFAULT_FONT, SETTINGS, TIMER_BORDER_COLOR, TIMER_BORDER_THICKNESS, TIMER_COLOR, TIMER_HEIGHT, TIMER_WIDTH, TIMER_X, TIMER_X, TIMER_Y, WHITE
 
 class Timer:
     def __init__(self):
@@ -13,8 +13,8 @@ class Timer:
         self.width = TIMER_WIDTH
         self.font = pygame.font.SysFont(DEFAULT_FONT, self.height // 10 * 10)
         self.font_color = BLACK
-        self.blackTime = BLACK_TIME_INIT
-        self.whiteTime = WHITE_TIME_INIT
+        self.blackTime = SETTINGS["BLACK_TIME_INIT"]
+        self.whiteTime = SETTINGS["WHITE_TIME_INIT"]
         self.text = '0'
         self.drawtext = self.font.render(self.text, 1, self.font_color)
         self.text_x = self.x + self.width // 2 - self.drawtext.get_width() // 2

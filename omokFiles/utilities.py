@@ -84,12 +84,11 @@ class Console:
                 if button.is_clicked(pos):
                     return button.press()
 
-class Button:
-    def __init__(self, x, y, width, height, color, pressed_color, text, font, font_color):
+class Display:
+    def __init__(self, x, y, width, height, color, text, font, font_color):
         self.x = x
         self.y = y
         self.color = color
-        self.pressed_color = pressed_color
         self.text = text
         self.height = height
         self.width = width
@@ -103,13 +102,7 @@ class Button:
     def calculate_text_pos(self):
         self.text_x = self.x + self.width // 2 - self.drawtext.get_width() // 2
         self.text_y = self.y + self.height // 2 - self.drawtext.get_height() // 2
-
-    def press(self):
-        self.pressed = True if self.pressed == False else False
     
-    def unpress(self):
-        self.pressed = False
-
     def draw(self, win):
         if self.pressed:
             draw_color = self.pressed_color
@@ -117,6 +110,17 @@ class Button:
             draw_color = self.color
         pygame.draw.rect(win, draw_color, (self.x, self.y, self.width, self.height))
         win.blit(self.drawtext, (self.text_x, self.text_y))
+
+class Button(Display):
+    def __init__(self, x, y, width, height, color, pressed_color, text, font, font_color):
+        super().__init__(x, y, width, height, color, text, font, font_color)
+        self.pressed_color = pressed_color
+
+    def press(self):
+        self.pressed = True if self.pressed == False else False
+    
+    def unpress(self):
+        self.pressed = False
 
     def is_clicked(self, pos):
         px, py = pos
