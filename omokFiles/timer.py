@@ -1,6 +1,4 @@
-import pygame
-import time
-from .utilities import Button
+import pygame, time, os, json
 from .constants import BLACK, DEFAULT_FONT, SETTINGS, TIMER_BORDER_COLOR, TIMER_BORDER_THICKNESS, TIMER_COLOR, TIMER_HEIGHT, TIMER_WIDTH, TIMER_X, TIMER_X, TIMER_Y, WHITE
 
 class Timer:
@@ -13,6 +11,8 @@ class Timer:
         self.width = TIMER_WIDTH
         self.font = pygame.font.SysFont(DEFAULT_FONT, self.height // 10 * 10)
         self.font_color = BLACK
+        with open(os.path.join('omokFiles', 'settings.json')) as json_file:
+            SETTINGS = json.load(json_file)
         self.blackTime = SETTINGS["BLACK_TIME_INIT"]
         self.whiteTime = SETTINGS["WHITE_TIME_INIT"]
         self.text = '0'

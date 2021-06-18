@@ -94,7 +94,6 @@ class Display:
         self.width = width
         self.font = pygame.font.SysFont(font, height // 10 * 6)
         self.font_color = font_color
-        self.pressed = False
         self.drawtext = self.font.render(self.text, 1, self.font_color)
         self.text_x = self.x + self.width // 2 - self.drawtext.get_width() // 2
         self.text_y = self.y + self.height // 2 - self.drawtext.get_height() // 2
@@ -104,16 +103,32 @@ class Display:
         self.text_y = self.y + self.height // 2 - self.drawtext.get_height() // 2
     
     def draw(self, win):
-        if self.pressed:
-            draw_color = self.pressed_color
-        else:
-            draw_color = self.color
+        self.calculate_text_pos()
+        draw_color = self.color
         pygame.draw.rect(win, draw_color, (self.x, self.y, self.width, self.height))
         win.blit(self.drawtext, (self.text_x, self.text_y))
+
+class Display_Only_Text(Display):
+    def __init__(self, x, y, font_size, text, font, font_color):
+        self.x = x
+        self.y = y
+        self.text = text
+        self.font_size = font_size
+        self.font = pygame.font.SysFont(font, font_size)
+        self.font_color = font_color
+        self.drawtext = self.font.render(self.text, 1, self.font_color)
+        self.width = self.drawtext.get_width()
+        self.height = self.drawtext.get_height()
+        self.text_x = self.x + self.width // 2 - self.drawtext.get_width() // 2
+        self.text_y = self.y + self.height // 2 - self.drawtext.get_height() // 2
+    
+    def draw(self, win):
+        win.blit(self.drawtext, (self.x, self.y))
 
 class Button(Display):
     def __init__(self, x, y, width, height, color, pressed_color, text, font, font_color):
         super().__init__(x, y, width, height, color, text, font, font_color)
+        self.pressed = False
         self.pressed_color = pressed_color
 
     def press(self):
@@ -127,6 +142,15 @@ class Button(Display):
         if px > self.x and px <= self.x + self.width and py > self.y and py <= self.y + self.height:
             return True
         return False
+    
+    def draw(self, win):
+        if self.pressed:
+            draw_color = self.pressed_color
+        else:
+            draw_color = self.color
+        self.calculate_text_pos()
+        pygame.draw.rect(win, draw_color, (self.x, self.y, self.width, self.height))
+        win.blit(self.drawtext, (self.text_x, self.text_y))
 
 
 class Reset_Button(Button):
@@ -149,7 +173,6 @@ class Potential_Button(Button):
         super().press()
         for button in self.partners:
             button.unpress()
-        
         return self.type
     
     def ind_press(self):

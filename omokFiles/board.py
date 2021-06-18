@@ -14,6 +14,9 @@ class Board:
         self.num_move = 0
         self.history = deque()
         self.redoHistory = deque()
+        self.pot_to_square_b = {}
+        self.pot_to_square_w = {}
+        self.pot_to_square_init()
         self.potential_init()
     
     def draw(self, win):
@@ -89,9 +92,21 @@ class Board:
             self.w_potential.append([])
             for col in range(COLS):
                 self.board[row].append(0)
-                self.b_potential[row].append(['o1', 'o1', 'o1', 'o1'])
-                self.w_potential[row].append(['o1', 'o1', 'o1', 'o1'])
+                self.b_potential[row].append(['na', 'na', 'na', 'na'])
+                self.w_potential[row].append(['na', 'na', 'na', 'na'])
     
+    def pot_to_square_init(self):
+        lanes = [0, 1, 2, 3]
+        pots = ['na', '00', 'c1', 'o1', 'c2', 'o2', 'c3', 'o3', 'c4', 'o4', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15']
+        for pot in pots:
+            self.pot_to_square_b[pot] = set()
+            self.pot_to_square_w[pot] = set()
+        for lane in lanes:
+            for i in range(ROWS):
+                for j in range(COLS):
+                    self.pot_to_square_b['na'].add((i, j, lane))
+                    self.pot_to_square_w['na'].add((i, j, lane))
+
     def potential_init(self):
         lanes = ['v', 'h', 'VH', 'vh']
         for lane in lanes:
@@ -110,9 +125,10 @@ class Board:
     def make_move(self, pos):
         x, y = pos
         if self.board[x][y] != 0:
-            return False
+            return "slot not empty"
         if self.turn == BLACK:
             i = 1
+            
             for a in range(4):
                 if self.b_potential[x][y][a] == '05':
                     print('black won!')
@@ -131,10 +147,17 @@ class Board:
             self.redoHistory.clear()
         self.moveBookKeep(pos)
         for i in range(4):
+            self.pot_to_square_b[self.b_potential[pos[0]][pos[1]][i]].remove((pos[0], pos[1], i))
             self.b_potential[pos[0]][pos[1]][i] = 'na'
+            self.pot_to_square_b['na'].add((pos[0], pos[1], i))
+            self.pot_to_square_w[self.w_potential[pos[0]][pos[1]][i]].remove((pos[0], pos[1], i))
             self.w_potential[pos[0]][pos[1]][i] = 'na'
+            self.pot_to_square_w['na'].add((pos[0], pos[1], i))
         self.change_turn()
         self.num_move += 1
+        return "successful"
+        # for key in self.pot_to_square_b.keys():
+        #     print(key, len(self.pot_to_square_b[key]), len(self.pot_to_square_w[key]), self.pot_to_square_b[key], self.pot_to_square_w[key])
     
     def undo(self):
         if len(self.history) == 0:
@@ -174,7 +197,6 @@ class Board:
         dv, dh = DELTA[dir]
         length, iR, iC = self.getLaneInfo(pos, dir)
         ind = DIRTOIND[dir]
-            # calculate slots in which combos can be formed (vertical)
         # print('bookKeepLane:', pos, dir, length, iR, iC)
         longestPotLink = []
         count = 0
@@ -192,7 +214,9 @@ class Board:
             if num == 0:
                 continue
             elif num == -1:
-                self.b_potential[iR + current * dv][iC + current * dh][ind] = 'na'
+                #self.pot_to_square[self.b_potential[iR + current * dv][iC + current * dh][ind]].remove((iR + current * dv, iC + current * dh, ind))
+                #self.b_potential[iR + current * dv][iC + current * dh][ind] = 'na'
+                #self.pot_to_square['na'].add((iR + current * dv, iC + current * dh, ind))
                 current += 1
             elif num < 5:
                 self.delDirection((iR + current * dv, iC + current * dh), num, stone, dir)
@@ -207,14 +231,22 @@ class Board:
                 for a in range(num):
                     if potentials[a] == None:
                         if stone == 1:
+                            self.pot_to_square_b[self.b_potential[iR + (current + a) * dv][iC + (current + a) * dh][ind]].remove((iR + (current + a) * dv, iC + (current + a) * dh, ind))
                             self.b_potential[iR + (current + a) * dv][iC + (current + a) * dh][ind] = 'na'
+                            self.pot_to_square_b['na'].add((iR + (current + a) * dv, iC + (current + a) * dh, ind))
                         else:
+                            self.pot_to_square_w[self.w_potential[iR + (current + a) * dv][iC + (current + a) * dh][ind]].remove((iR + (current + a) * dv, iC + (current + a) * dh, ind))
                             self.w_potential[iR + (current + a) * dv][iC + (current + a) * dh][ind] = 'na'
+                            self.pot_to_square_w['na'].add((iR + (current + a) * dv, iC + (current + a) * dh, ind))
                     else:
                         if stone == 1:
+                            self.pot_to_square_b[self.b_potential[iR + (current + a) * dv][iC + (current + a) * dh][ind]].remove((iR + (current + a) * dv, iC + (current + a) * dh, ind))
                             self.b_potential[iR + (current + a) * dv][iC + (current + a) * dh][ind] = potentials[a]
+                            self.pot_to_square_b[potentials[a]].add((iR + (current + a) * dv, iC + (current + a) * dh, ind))
                         else:
+                            self.pot_to_square_w[self.w_potential[iR + (current + a) * dv][iC + (current + a) * dh][ind]].remove((iR + (current + a) * dv, iC + (current + a) * dh, ind))
                             self.w_potential[iR + (current + a) * dv][iC + (current + a) * dh][ind] = potentials[a]
+                            self.pot_to_square_w[potentials[a]].add((iR + (current + a) * dv, iC + (current + a) * dh, ind))
                 current += num
 
     def getLaneInfo(self, pos, dir):
@@ -248,9 +280,13 @@ class Board:
         for a in range(num):
             if self.board[i + dv * a][j + dh * a] == 0:
                 if stone == 1:
+                    self.pot_to_square_b[self.b_potential[i + dv * a][j + dh * a][ind]].remove((i + dv * a, j + dh * a, ind))
                     self.b_potential[i + dv * a][j + dh * a][ind] = '00'
+                    self.pot_to_square_b['00'].add((i + dv * a, j + dh * a, ind))
                 else:
+                    self.pot_to_square_w[self.w_potential[i + dv * a][j + dh * a][ind]].remove((i + dv * a, j + dh * a, ind))
                     self.w_potential[i + dv * a][j + dh * a][ind] = '00'
+                    self.pot_to_square_w['00'].add((i + dv * a, j + dh * a, ind))
 
     def updatePotential(self, subarray, stone):
         ret = []

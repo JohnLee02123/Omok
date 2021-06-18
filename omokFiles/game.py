@@ -60,8 +60,9 @@ class Game:
         newPos = self.get_row_col_from_mouse(pos)
         if newPos is not None:
             print(newPos)
-            self.board.make_move(newPos)
-            self.timer.change_turn()
+            result = self.board.make_move(newPos)
+            if result == "successful":
+                self.timer.change_turn()
             return
         if self.clicked_console(pos):
             console_ret = self.console.click(pos)
@@ -78,7 +79,8 @@ class Game:
                 self.board.redo()
                 self.timer.change_turn()
         if self.clicked_settings(pos):
-            settings_ret = self.settingsButton.press()
+            self.settings.reset_parameters()
+            self.settingsButton.press()
 
 
     def selectSettings(self, pos):
