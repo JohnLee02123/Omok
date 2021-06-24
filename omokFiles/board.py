@@ -258,7 +258,6 @@ class Board:
                                 if potentials[a][0] == '0' and int(potentials[a][1]) > 5:
                                     self.illegal[iR + (current + a) * dv][iC + (current + a) * dh][2] = "il"
                                     bookKeepLater.append((iR + (current + a) * dv, iC + (current + a) * dh))
-                                    print(bookKeepLater)
                             else: # illegal (>5) to start with
                                 ill = False
                                 for i in range(4):
@@ -268,15 +267,14 @@ class Board:
                                 if not ill: # not illegal anymore
                                     self.illegal[iR + (current + a) * dv][iC + (current + a) * dh][2] = "na"
                                     bookKeepLater.append((iR + (current + a) * dv, iC + (current + a) * dh))
-                                    print(bookKeepLater)
                             self.pot_to_square_b[potentials[a]].add((iR + (current + a) * dv, iC + (current + a) * dh, ind))
                         else:
                             self.pot_to_square_w[self.w_potential[iR + (current + a) * dv][iC + (current + a) * dh][ind]].remove((iR + (current + a) * dv, iC + (current + a) * dh, ind))
                             self.w_potential[iR + (current + a) * dv][iC + (current + a) * dh][ind] = potentials[a]
                             self.pot_to_square_w[potentials[a]].add((iR + (current + a) * dv, iC + (current + a) * dh, ind))
                 current += num
-        for elem in bookKeepLater:
-            self.moveBookKeep(elem)
+        # for elem in bookKeepLater:
+        #     self.moveBookKeep(elem)
 
     def getLaneInfo(self, pos, dir):
         i, j = pos
@@ -319,11 +317,14 @@ class Board:
 
     def updatePotential(self, subarray, stone):
         ret = []
+        print('        from updatePotential:')
         for a in range(len(subarray)):
             if subarray[a] == 0:
+                print('   calling potrec from updatepotential', [subarray[:a], subarray[a+1:]], False)
                 app = self.potRec([subarray[:a], subarray[a+1:]], stone, False, 0)
                 ret.append(app)
             elif subarray[a] == 10:
+                print('   calling potrec from updatepotential', [subarray[:a], subarray[a+1:]], True)
                 app = self.potRec([subarray[:a], subarray[a+1:]], stone, True, 0)
                 ret.append(app)
             else:
@@ -331,9 +332,10 @@ class Board:
         return ret
 
     def potRec(self, fbarr, stone, ill, blockdir):
-        if blockdir == 0:
+        if blockdir == 0 and not ill:
             if stone == 1:
                 if str((tuple(fbarr[0]), tuple(fbarr[1]))) in BLACK_POTENTIAL:
+                    print('already done', fbarr, stone, BLACK_POTENTIAL[str((tuple(fbarr[0]), tuple(fbarr[1])))])
                     return BLACK_POTENTIAL[str((tuple(fbarr[0]), tuple(fbarr[1])))]
             else:
                 if str((tuple(fbarr[0]), tuple(fbarr[1]))) in WHITE_POTENTIAL:
@@ -358,14 +360,20 @@ class Board:
                 return None
         if consec >= 5:
             return '0' + str(consec)
+        print('summary:', consec, fbarr, stone, ill, blockdir)
         if front0 != -1: # if there's anything left in the front
             backarr = fbarr[0][front0+1:]
-            backarr.append(1)
+            backarr.append(stone)
             backarr.extend(fbarr[1].copy())
+            print('in front')
             if fbarr[0][front0] == 10:
+                print('front0 is illegal')
                 if blockdir != -1:
+                    print('   not blockdir, call potRec for illegal: ')
                     nextFrontPot = self.potRec([fbarr[0][:front0], backarr], stone, True, 0)
+                    print('   returned from potrec for illegal')
                     if nextFrontPot == None:
+                        print('illegal checked, 5 not possible')
                         frontZero = -1
                         for a in range(flen):
                             if fbarr[0][flen - 1 - a] == 0:
@@ -375,25 +383,36 @@ class Board:
                             backarr = fbarr[0][frontZero+1:]
                             backarr.append(1)
                             backarr.extend(fbarr[1].copy())
+                            print('   frontZero exists, call potRec on the zero')
                             nextFrontPot = self.potRec([fbarr[0][:frontZero], backarr], stone, False, -1)
+                            print('   returned from potrec')
                         else:
+                            print('frontZero is -1, nextFrontPot = None')
                             nextFrontPot = None
                 else:
+                    print('blockdir == -1')
                     nextFrontPot = None
             else:
+                print('   front0 is not illegal, call potRec on the zero')
                 nextFrontPot = self.potRec([fbarr[0][:front0], backarr], stone, False, 0)
+                print('return from potRec')
         else:
+            print('nothing in front')
             nextFrontPot = None
-        print(back0, blen)
         if back0 != blen: # if there's anything left in the back
             frontarr = fbarr[0].copy()
-            frontarr.append(1)
+            frontarr.append(stone)
             frontarr.extend(fbarr[1][:back0])
+            print('in back')
             if fbarr[1][back0] == 10:
+                print('back0 is illegal')
                 if blockdir != 1:
-                    nextFrontPot = self.potRec([frontarr, fbarr[1][back0+1:]], stone, True, 0)
-                    if nextFrontPot == None:
+                    print('   not blockdir, call potRec for illegal: ')
+                    nextBackPot = self.potRec([frontarr, fbarr[1][back0+1:]], stone, True, 0)
+                    print('   returned from potrec for illegal')
+                    if nextBackPot == None:
                         backZero = blen
+                        print('illegal checked, 5 not possible')
                         for a in range(blen):
                             if fbarr[1][a] == 0:
                                 backZero = a
@@ -402,26 +421,34 @@ class Board:
                             frontarr = fbarr[0].copy()
                             frontarr.append(1)
                             frontarr.extend(fbarr[1][:backZero])
+                            print('   backZero exists, call potRec on the zero')
                             nextBackPot = self.potRec([frontarr, fbarr[1][backZero+1:]], stone, False, 1)
+                            print('   returned from potrec')
                         else:
+                            print('backZero is -1, nextFrontPot = None')
                             nextBackPot = None
                 else:
+                    print('blockdir == -1')
                     nextBackPot = None
             else:
+                print('   back0 is not illegal, call potRec on the zero')
                 nextBackPot = self.potRec([frontarr, fbarr[1][back0+1:]], stone, False, 0)
+                print('   returned from potRec')
         else:
+            print('nothing in back')
             nextBackPot = None
         # if self.printlocal:
         #     print(nextFrontPot, nextBackPot, fbarr)
         if stone == 1:
-            print(fbarr)
             calc = self.calcPotBlack(nextFrontPot, nextBackPot)
-            if blockdir == 0:
+            print('result: ', nextFrontPot, nextBackPot, calc, fbarr, stone, ill, blockdir)
+            if blockdir == 0 and not ill:
                 BLACK_POTENTIAL[str((tuple(fbarr[0]), tuple(fbarr[1])))] = calc
             return calc
         else:
             calc = self.calcPotWhite(nextFrontPot, nextBackPot)
-            if blockdir == 0:
+            print('result: ', nextFrontPot, nextBackPot, calc)
+            if blockdir == 0 and not ill:
                 WHITE_POTENTIAL[str((tuple(fbarr[0]), tuple(fbarr[1])))] = calc
             return calc
 
