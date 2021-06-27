@@ -111,17 +111,23 @@ DRAW_B_POT, DRAW_W_POT, DRAW_N_POT = 'dbp', 'dwp', 'dnp'
 
 LINE_THICKNESS = 2
 STONE_PADDING = 2
+ILLEGAL_SQUARE_PADDING = 2
+ILLEGAL_SQUARE = pygame.Surface((SQUARE_SIZE - ILLEGAL_SQUARE_PADDING*2, SQUARE_SIZE - ILLEGAL_SQUARE_PADDING*2))
+ILLEGAL_SQUARE.set_alpha(64)
+ILLEGAL_SQUARE.fill(RED)
+
 DELTA = {'v': (1,0), 'VH': (1,1), 'h': (0,1), 'vh': (-1, 1)}
 DIRTOIND = {'v': 0, 'VH': 1, 'h': 2, 'vh': 3}
 
 WOOD_BACKGROUND = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'wood_background.jpg')), (WIDTH, HEIGHT))
 
-with open(os.path.join('omokFiles', 'black_potential.json')) as json_file1:
-    BLACK_POTENTIAL = json.load(json_file1)
+# with open(os.path.join('omokFiles', 'black_potential.json')) as json_file1:
+#     BLACK_POTENTIAL = json.load(json_file1)
+BLACK_POTENTIAL = {}
 
-with open(os.path.join('omokFiles', 'white_potential.json')) as json_file2:
-    WHITE_POTENTIAL = json.load(json_file2)
-
+# with open(os.path.join('omokFiles', 'white_potential.json')) as json_file2:
+#     WHITE_POTENTIAL = json.load(json_file2)
+WHITE_POTENTIAL = {}
 
 POT_FONT_SIZE = SQUARE_SIZE // 3
 POT_FONT_DIS = POT_FONT_SIZE // 2 + 1
