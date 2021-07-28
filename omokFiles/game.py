@@ -4,6 +4,7 @@ import os
 import json
 from .constants import CONSOLE_HEIGHT, CONSOLE_LENGTH, DEFAULT_FONT, DRAW_B_POT, DRAW_N_POT, DRAW_W_POT, GREEN_1, GREEN_2, RED, SETTINGS_BUTTON_HEIGHT, SETTINGS_BUTTON_PADDING, SETTINGS_BUTTON_WIDTH, SQUARE_SIZE, WHITE, BLUE, BLACK, WIDTH, WOOD_BACKGROUND, ROWS, COLS, DELTA, BLACK_POTENTIAL, DIRTOIND, WHITE_POTENTIAL, BOARD_START, BOARD_LENGTH
 from .board import Board
+from.johnPhaGo import JohnPhaGo
 from .utilities import Console, Panel, Settings_Button
 from .settings import Settings
 
@@ -22,6 +23,8 @@ class Game:
         self.timer = Timer()
         self.first = 0
         self.printlocal = True
+        self.computer = JohnPhaGo()
+        self.ai = False
 
     def reset(self):
         self._init()

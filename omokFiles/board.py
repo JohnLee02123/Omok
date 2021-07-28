@@ -1,5 +1,6 @@
 import pygame
 import os, json
+import copy
 from .constants import BLACK, BLACK_POTENTIAL, B_POT_TO_COLOR, DELTA, DIRTOIND, ILLEGAL_SQUARE, POT_FONT_CORR, ROWS, RED, SQUARE_SIZE, COLS, WHITE, GREY, LINE_THICKNESS, BOARD_START, STONE_PADDING, POTENTIAL_FONT, POT_FONT_SIZE, POT_FONT_DIS, WHITE_POTENTIAL, W_POT_TO_COLOR
 from collections import deque
 
@@ -20,7 +21,23 @@ class Board:
         self.pot_to_square_init()
         self.potential_init()
         self.bookKeepStack = []
+        # self.file1 = open("debug.txt", "w")
     
+    def copy(self):
+        new = Board()
+        new.board = copy.deepcopy(self.board)
+        new.b_potential = copy.deepcopy(self.b_potential)
+        new.w_potential = copy.deepcopy(self.w_potential)
+        new.illegal = copy.deepcopy(self.illegal)
+        new.draw_potential = copy.deepcopy(self.draw_potential)
+        new.turn = copy.deepcopy(self.turn)
+        new.num_move = copy.deepcopy(self.num_move)
+        new.history = copy.deepcopy(self.history)
+        new.redoHistory = copy.deepcopy(self.redoHistory)
+        new.pot_to_square_b = copy.deepcopy(self.pot_to_square_b)
+        new.pot_to_square_w = copy.deepcopy(self.pot_to_square_w)
+        new.bookKeepStack = copy.deepcopy(self.bookKeepStack)
+
     def draw(self, win):
         self.draw_lines(win)
         self.draw_stones(win)
@@ -111,7 +128,7 @@ class Board:
     
     def pot_to_square_init(self):
         lanes = [0, 1, 2, 3]
-        pots = ['na', '00', 'c1', 'o1', 'c2', 'o2', 'c3', 'o3', 'c4', 'o4', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15']
+        pots = ['na', '00', 'c1', 'o1', 'c2', 'o2', 'c3', 'o3', 'c4', 'o4', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', 'x4']
         for pot in pots:
             self.pot_to_square_b[pot] = set()
             self.pot_to_square_w[pot] = set()
@@ -275,50 +292,60 @@ class Board:
                     else:
                         if stone == 1:
                             self.pot_to_square_b[self.b_potential[currRow][currCol][ind]].remove((currRow, currCol, ind))
+                            prevPot = self.b_potential[currRow][currCol][ind]
                             self.b_potential[currRow][currCol][ind] = potentials[a]
                             self.pot_to_square_b[potentials[a]].add((currRow, currCol, ind))
+                            if self.detBookKeep(prevPot, potentials[a]):
+                                bookKeepLater.append((currRow, currCol))
 
-                            if self.illegal[currRow][currCol][2] == "na": # not illegal (>5) to start with (have to fix the 0 in front)
-                                if potentials[a][0] == '0' and int(potentials[a][1]) > 5:
-                                    self.illegal[currRow][currCol][2] = 'il'
-                                    bookKeepLater.append((currRow, currCol))
-                            else: # illegal (>5) to start with
+                            if potentials[a][0] == '0' and int(potentials[a][1]) > 5:
+                                self.illegal[currRow][currCol][2] = 'il'
+                            elif self.illegal[currRow][currCol][2] != "na":
                                 ill = False
                                 for i in range(4):
                                     check = self.b_potential[currRow][currCol][i]
                                     if check[0] == '0' and int(check[1]) > 5:
                                         ill = True
-                                if not ill: # not illegal anymore
+                                if not ill: # not illegal
                                     self.illegal[currRow][currCol][2] = "na"
-                                    bookKeepLater.append((currRow, currCol))
+
                             if self.illegal[currRow][currCol][1] == "na": # not illegal (44) to start with
+                                if self.b_potential[currRow][currCol][ind][1] == '4':
+                                    count4 = self.black44(currRow, currCol)
+                                    if count4 > 0:
+                                        self.illegal[currRow][currCol][1] = '0' + str(count4)
+                            else: # illegal (44) to start with
                                 count4 = self.black44(currRow, currCol)
                                 if count4 > 0:
                                     self.illegal[currRow][currCol][1] = '0' + str(count4)
-                                    bookKeepLater.append((currRow, currCol))
-                            else: # illegal (44) to start with
-                                or4 = int(self.illegal[currRow][currCol][1])
-                                count4 = self.black44(currRow, currCol)
-                                if or4 != count4:
-                                    if count4 > 0:
-                                        self.illegal[currRow][currCol][1] = '0' + str(count4)
-                                    else:
-                                        self.illegal[currRow][currCol][1] = 'na'
-                                    bookKeepLater.append((currRow, currCol))
+                                else:
+                                    self.illegal[currRow][currCol][1] = 'na'
+                            
                             if self.illegal[currRow][currCol][0] == "na":
+                                if self.b_potential[currRow][currCol][ind] == 'o3':
+                                    count3 = self.black33(currRow, currCol)
+                                    if count3 > 0:
+                                        self.illegal[currRow][currCol][0] = '0' + str(count3)
+                            else:
                                 count3 = self.black33(currRow, currCol)
                                 if count3 > 0:
                                     self.illegal[currRow][currCol][0] = '0' + str(count3)
-                                    bookKeepLater.append((currRow, currCol))
-                            else:
-                                or3 = int(self.illegal[currRow][currCol][0])
+                                else:
+                                    self.illegal[currRow][currCol][0] = 'na'
+                            
+                            if prevPot == '05' and potentials[a] != '05':
                                 count3 = self.black33(currRow, currCol)
-                                if or3 != count3:
-                                    if count3 > 0:
-                                        self.illegal[currRow][currCol][0] = '0' + str(count3)
-                                    else:
-                                        self.illegal[currRow][currCol][0] = 'na'
-                                    bookKeepLater.append((currRow, currCol))
+                                if count3 > 0:
+                                    self.illegal[currRow][currCol][0] = '0' + str(count3)
+                                else:
+                                    self.illegal[currRow][currCol][0] = 'na'
+                                count4 = self.black44(currRow, currCol)
+                                if count4 > 0:
+                                    self.illegal[currRow][currCol][1] = '0' + str(count4)
+                                else:
+                                    self.illegal[currRow][currCol][1] = 'na'
+                            elif potentials[a] == '05':
+                                self.illegal[currRow][currCol] = ['na', 'na', 'na']
                         else:
                             self.pot_to_square_w[self.w_potential[iR + (current + a) * dv][iC + (current + a) * dh][ind]].remove((iR + (current + a) * dv, iC + (current + a) * dh, ind))
                             self.w_potential[iR + (current + a) * dv][iC + (current + a) * dh][ind] = potentials[a]
@@ -326,6 +353,12 @@ class Board:
                 current += num
         for elem in bookKeepLater:
             self.bookKeepStack.append(elem)
+
+    def detBookKeep(self, prevPot, pot):
+        if prevPot == pot:
+            return False
+        if (prevPot != 'na' and (int(prevPot[1]) >= 4 or prevPot == 'o3')) or pot != 'na' and int(pot[1]) >= 4 or pot == 'o3':
+            return True
 
     def whichIllegal(self, i, j, dirInd):
         count3 = 0
@@ -339,6 +372,8 @@ class Board:
                 count4 += 1
             elif curr == 'o3':
                 count3 += 1
+            elif curr == 'x4':
+                return 10
             elif int(curr[1]) > 5 or curr[0] == '1':
                 countLong += 1
         if count3 > 1 or count4 > 1 or countLong > 0:
@@ -358,6 +393,8 @@ class Board:
         for x in range(4):
             if self.b_potential[i][j][x] == 'c4' or self.b_potential[i][j][x] == 'o4':
                 count += 1
+            elif self.b_potential[i][j][x] == 'x4':
+                count += 2
         return count if count > 1 else 0
 
     def black33(self, i, j):
@@ -455,84 +492,71 @@ class Board:
             if base >= front0 + 1 and base <= flen + back0:
                 return '0' + str(consec)
             else:
-                return 'x0'
+                return None
         # print('summary:', consec, fbarr, stone, ill, blockdir)
-        if front0 != -1: # if there's anything left in the front
+        
+        
+        nextFrontPot = None
+        illegal = True
+        front0 += 1 # to do the -= 1 inside
+        while illegal and front0 != 0:
+            front0 -= 1
             backarr = fbarr[0][front0+1:]
             backarr.append(stone)
             backarr.extend(fbarr[1].copy())
-            # print('in front')
-            if fbarr[0][front0] == 10:
-                # print('front0 is illegal')
-                nextFrontPot = self.potRec([fbarr[0][:front0], backarr], stone, True, base)
-                # print('   returned from potrec for illegal')
-                if nextFrontPot == None:
-                    # print('illegal checked, 5 not possible')
-                    frontZero = -1
-                    for a in range(flen):
-                        if fbarr[0][flen - 1 - a] == 0:
-                            frontZero = flen - 1 - a
-                            break
-                    if frontZero != -1:
-                        backarr = fbarr[0][frontZero+1:]
-                        backarr.append(1)
-                        backarr.extend(fbarr[1].copy())
-                        # print('   frontZero exists, call potRec on the zero')
-                        nextFrontPot = self.potRec([fbarr[0][:frontZero], backarr], stone, False, base)
-                        # print('   re turned from potrec')
-                    else:
-                        # print('frontZero is -1, nextFrontPot = None')
-                        nextFrontPot = None
-            else:
-                # print('   front0 is not illegal, call potRec on the zero')
+            if fbarr[0][front0] == 0:
+                illegal = False
                 nextFrontPot = self.potRec([fbarr[0][:front0], backarr], stone, False, base)
-                # print('return from potRec')
-
-
-                ### Must handle cases with single 3, 4, and 34
-        else:
-            # print('nothing in front')
-            nextFrontPot = None
-        if back0 != blen: # if there's anything left in the back
+            elif fbarr[0][front0] == 10:
+                nextFrontPot = self.potRec([fbarr[0][:front0], backarr], stone, True, base)
+                if nextFrontPot == None:
+                    continue
+                else:
+                    illegal = False
+            elif fbarr[0][front0] == stone:
+                continue
+            else:
+                nextFrontPot = self.potRec([fbarr[0][:front0], backarr], stone, False, base)
+                if fbarr[0][front0] == 3 or fbarr[0][front0] == 34:
+                    if nextFrontPot == 'o3':
+                        continue
+                if fbarr[0][front0] == 4 or fbarr[0][front0] == 34:
+                    if nextFrontPot == 'c4' or nextFrontPot == 'o4':
+                        continue
+                illegal = False
+        
+        nextBackPot = None
+        illegal = True
+        back0 -= 1
+        while illegal and back0 != blen - 1:
+            back0 += 1
             frontarr = fbarr[0].copy()
             frontarr.append(stone)
             frontarr.extend(fbarr[1][:back0])
-            # print('in back')
-            if fbarr[1][back0] == 10:
-                # print('back0 is illegal')
-                nextBackPot = self.potRec([frontarr, fbarr[1][back0+1:]], stone, True, base)
-                # print('   returned from potrec for illegal')
-                if nextBackPot == None:
-                    backZero = blen
-                    # print('illegal checked, 5 not possible')
-                    for a in range(blen):
-                        if fbarr[1][a] == 0:
-                            backZero = a
-                            break
-                    if backZero != blen:
-                        frontarr = fbarr[0].copy()
-                        frontarr.append(1)
-                        frontarr.extend(fbarr[1][:backZero])
-                        # print('   backZero exists, call potRec on the zero')
-                        nextBackPot = self.potRec([frontarr, fbarr[1][backZero+1:]], stone, False, base)
-                        # print('   returned from potrec')
-                    else:
-                        # print('backZero is -1, nextFrontPot = None')
-                        nextBackPot = None
-            else:
-                # print('   back0 is not illegal, call potRec on the zero')
+            if fbarr[1][back0] == 0:
+                illegal = False
                 nextBackPot = self.potRec([frontarr, fbarr[1][back0+1:]], stone, False, base)
-                # print('   returned from potRec')
-
-
-
-
-                ### Must handle cases with single 3, 4, and 34
-        else:
-            # print('nothing in back')
-            nextBackPot = None
+            elif fbarr[1][back0] == 10:
+                nextBackPot = self.potRec([frontarr, fbarr[1][back0+1:]], stone, True, base)
+                if nextBackPot == None:
+                    continue
+                else:
+                    illegal = False
+            elif fbarr[1][back0] == stone:
+                continue
+            else:
+                nextBackPot = self.potRec([frontarr, fbarr[1][back0+1:]], stone, False, base)
+                if fbarr[1][back0] == 3 or fbarr[1][back0] == 34:
+                    if nextBackPot == 'o3':
+                        continue
+                if fbarr[1][back0] == 4 or fbarr[1][back0] == 34:
+                    if nextBackPot == 'c4' or nextBackPot == 'o4':
+                        continue
+                illegal = False
         if stone == 1:
             calc = self.calcPotBlack(nextFrontPot, nextBackPot)
+            if calc == 'o4' and abs(back0 + (flen - front0 - 1)) != 3:
+                calc = 'x4'
             # print('result: ', nextFrontPot, nextBackPot, calc, fbarr, stone, ill, blockdir)
             if not ill:
                 BLACK_POTENTIAL[str((tuple(fbarr[0]), tuple(fbarr[1]), base))] = calc
